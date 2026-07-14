@@ -1,5 +1,5 @@
 const jestConfig = require("./jest.config");
-const { clickElement, getText, isDisabled } = require("./lib/commands");
+const { clickElement, getText, isDisabled } = require("../7.5/lib/commands.js");
 
 describe("Movies tests", () => {
   let page;
