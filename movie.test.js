@@ -1,4 +1,5 @@
 const jestConfig = require("./jest.config");
+const { clickElement, getText, isDisabled } = require("./lib/commands");
 
 describe("Movies tests", () => {
   let page;
@@ -6,6 +7,7 @@ describe("Movies tests", () => {
   beforeEach(async () => {
     page = await browser.newPage();
     await page.setDefaultNavigationTimeout(60000);
+    await page.setDefaultTimeout(40000);
     await page.goto("https://qamid.tmweb.ru/client/index.php");
   });
 
@@ -14,63 +16,52 @@ describe("Movies tests", () => {
   });
 
   test("Buy ticket successfully", async () => {
-    await page.click("a:nth-child(3)");
-    await page.click(".movie-seances__time[href='#'][data-seance-id='217']");
-    await page.click(
+    const expected = "Вы выбрали билеты:";
+    await clickElement(page, "a:nth-child(3)");
+    await clickElement(
+      page,
+      ".movie-seances__time[href='#'][data-seance-id='217']",
+    );
+    await clickElement(
+      page,
       "div[class='buying-scheme__wrapper'] div:nth-child(1) span:nth-child(1)",
     );
-    await page.click(".acceptin-button");
-    await page.waitForSelector(".ticket__check-title", {
-      visible: true,
-    });
-    const actual = await page.$eval(
-      ".ticket__check-title",
-      (link) => link.textContent,
-    );
-    expect(actual).toEqual("Вы выбрали билеты:");
+    await clickElement(page, ".acceptin-button");
+    const actual = await getText(page, ".ticket__check-title");
+    expect(actual).toEqual(expected);
   });
 
-  test("Check activity button", async () => {
-    await page.click(
+  test("Check activity acceptin-button when uncheck chair", async () => {
+    const expected = true;
+    await clickElement(
+      page,
       "body nav[class='page-nav'] a:nth-child(2) span:nth-child(2)",
     );
-    await page.waitForSelector("h1");
-    await page.click("a[href='#'][data-seance-id='223']");
-    await page.waitForSelector("h1");
-    await page.click(
+    await clickElement(page, "a[href='#'][data-seance-id='223']");
+    await clickElement(
+      page,
       "div[class='buying-scheme__wrapper'] div:nth-child(1) span:nth-child(1)",
     );
-    await page.waitForSelector(".buying", {
-      visible: true,
-    });
-    await page.click(
+    await clickElement(
+      page,
       "div[class='buying-scheme__wrapper'] div:nth-child(1) span:nth-child(1)",
     );
-    await page.waitForSelector(".buying", {
-      visible: true,
-    });
-    const isDisabled = await page.$eval(".acceptin-button", (button) => {
-      return button.disabled;
-    });
-    expect(isDisabled).toEqual(true);
+    const actual = await isDisabled(page, ".acceptin-button");
+    expect(actual).toEqual(expected);
   });
 
-  test("Inactive chair", async () => {
-    await page.click(
+  test("Check activity acceptin-button when check chair", async () => {
+    const expected = false;
+    await clickElement(
+      page,
       "body nav[class='page-nav'] a:nth-child(2) span:nth-child(2)",
     );
-    await page.waitForSelector("h1");
-    await page.click("a[href='#'][data-seance-id='223']");
-    await page.waitForSelector("h1");
-      await page.click(
+    await clickElement(page, "a[href='#'][data-seance-id='223']");
+    await clickElement(
+      page,
       "div[class='buying-scheme__wrapper'] div:nth-child(1) span:nth-child(1)",
     );
-    await page.waitForSelector(".buying", {
-      visible: true,
-    });
-    const isDisabled = await page.$eval(".acceptin-button", (button) => {
-      return button.disabled;
-    });
-    expect(isDisabled).toEqual(false);
+    const actual = await isDisabled(page, ".acceptin-button");
+    expect(actual).toEqual(expected);
   });
 });
